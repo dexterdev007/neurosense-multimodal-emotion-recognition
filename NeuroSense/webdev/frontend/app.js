@@ -591,12 +591,39 @@ function collectNumericPayload(key) {
 
 function collectFilePayload(key) {
   const state = fileState[key];
-  if (!state.file) {
-    if (!state.sample) return null;
-    const blob = new Blob(["mock data"], { type: key === "speech" ? "audio/wav" : "image/jpeg" });
-    return new File([blob], `mock_${key}.${key === "speech" ? "wav" : "jpg"}`, { type: blob.type });
+  return state.file || null;
+}
+
+function buildSimulatedFileResult(key) {
+  const scored = collectFileModality(key);
+  if (!scored) return null;
+  return {
+    modality: FILE_MODALITIES[key].label,
+    prediction: scored.label,
+    confidence: Number(scored.confidence.toFixed(4)),
+    probabilities: {
+      [scored.label]: Number(scored.confidence.toFixed(4)),
+    },
+    source: "simulated",
+  };
+}
+
+async function parsePredictionResponse(response, key) {
+  if (response.ok) {
+    return response.json();
   }
-  return state.file;
+
+  let message = `${key} failed`;
+  try {
+    const payload = await response.json();
+    if (typeof payload?.detail === "string" && payload.detail.trim()) {
+      message = payload.detail;
+    }
+  } catch {
+    // Ignore response parsing errors and fall back to the generic message.
+  }
+
+  throw new Error(message);
 }
 
 async function predictCombined() {
@@ -613,28 +640,31 @@ async function predictCombined() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         })
-          .then((res) => {
-            if (!res.ok) throw new Error(`${key} failed`);
-            return res.json();
-          })
+          .then((res) => parsePredictionResponse(res, key))
           .then((data) => ({ modality: NUMERIC_MODALITIES[key].label, ...data }))
       );
     }
   });
 
   Object.keys(FILE_MODALITIES).forEach((key) => {
+    const state = fileState[key];
     const file = collectFilePayload(key);
     if (file) {
       const fd = new FormData();
       fd.append("file", file);
       promises.push(
         fetch(`/api/${key}/predict`, { method: "POST", body: fd })
-          .then((res) => {
-            if (!res.ok) throw new Error(`${key} failed`);
-            return res.json();
-          })
+          .then((res) => parsePredictionResponse(res, key))
           .then((data) => ({ modality: FILE_MODALITIES[key].label, ...data }))
       );
+      return;
+    }
+
+    if (state.sample) {
+      const simulated = buildSimulatedFileResult(key);
+      if (simulated) {
+        promises.push(Promise.resolve(simulated));
+      }
     }
   });
 
@@ -662,8 +692,7 @@ async function predictCombined() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(fusionPayload),
     });
-    if (!fres.ok) throw new Error("Fusion failed");
-    const fusionData = await fres.json();
+    const fusionData = await parsePredictionResponse(fres, "fusion");
 
     let emotionLabel = (fusionData.prediction || fusionData.emotion || fusionData.predicted_emotion || fusionData.final_emotion || "NEUTRAL").toUpperCase();
     const emLower = emotionLabel.toLowerCase();

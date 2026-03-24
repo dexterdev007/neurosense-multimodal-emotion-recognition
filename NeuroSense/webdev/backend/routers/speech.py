@@ -1,5 +1,4 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-import numpy as np
 from utils.model_loader import get
 from utils.preprocessors import preprocess_speech
 

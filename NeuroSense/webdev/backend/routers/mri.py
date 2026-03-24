@@ -1,5 +1,4 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-import numpy as np
 from utils.model_loader import get
 from utils.preprocessors import preprocess_mri_image
 
@@ -36,6 +35,8 @@ async def predict_mri(file: UploadFile = File(...)):
             "filename":      file.filename
         }
     
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except HTTPException:
         raise
     except Exception as e:

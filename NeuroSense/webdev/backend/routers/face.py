@@ -1,5 +1,4 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-import numpy as np
 from utils.model_loader import get
 from utils.preprocessors import preprocess_face_image
 
@@ -35,6 +34,8 @@ async def predict_face(file: UploadFile = File(...)):
             "model_used":    type(model).__name__
         }
     
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except HTTPException:
         raise
     except Exception as e:
