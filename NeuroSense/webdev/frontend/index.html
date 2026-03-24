@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ML Project • Multimodal Emotion UI</title>
+    <meta name="theme-color" content="#f4f6fb" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true"></div>
+    <canvas id="bg-wave" class="bg-wave" aria-hidden="true"></canvas>
+
+    <nav class="nav glass" aria-label="Primary">
+      <div class="nav-brand">
+        <span class="brand-logo" aria-hidden="true">ML</span>
+        <span class="brand-text">ML Project</span>
+      </div>
+      <div class="nav-links">
+        <a href="#predict">Predict</a>
+        <a href="#results">Results</a>
+        <a href="#logic">Logic</a>
+        <a href="#theory">Theory</a>
+      </div>
+      <button id="theme-toggle" class="btn ghost" type="button">Toggle Theme</button>
+    </nav>
+
+    <main class="container">
+      <section class="hero glass">
+        <div class="hero-copy">
+          <div class="eyebrow">Unified Multimodal Emotion Simulation</div>
+          <h1>Predict Human Emotion</h1>
+          <p class="hero-subtitle">
+            Enter any combination of EEG, MEG, MRI, speech, and face inputs. The
+            system can predict from one modality or combine all five in a single
+            output.
+          </p>
+        </div>
+      </section>
+
+      <section id="predict" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Input Workspace</h2>
+            <p>
+              All five modalities are optional. Fill one, two, three, or all five,
+              then run a single combined prediction.
+            </p>
+          </div>
+        </div>
+
+        <div class="modality-grid">
+          <article class="glass panel modality-card">
+            <div class="card-head">
+              <div>
+                <div class="module-badge">EEG</div>
+                <h3>EEG Inputs</h3>
+                <p class="muted">Structured electrical brain-signal features.</p>
+              </div>
+            </div>
+            <div id="eeg-fields" class="input-grid compact-grid"></div>
+            <div class="button-row modality-actions">
+              <button id="eeg-random" class="btn glass" type="button">Random Example</button>
+              <button id="eeg-clear" class="btn ghost" type="button">Clear</button>
+            </div>
+          </article>
+
+          <article class="glass panel modality-card">
+            <div class="card-head">
+              <div>
+                <div class="module-badge">MEG</div>
+                <h3>MEG Inputs</h3>
+                <p class="muted">Magnetic field feature summaries.</p>
+              </div>
+            </div>
+            <div id="meg-fields" class="input-grid compact-grid"></div>
+            <div class="button-row modality-actions">
+              <button id="meg-random" class="btn glass" type="button">Random Example</button>
+              <button id="meg-clear" class="btn ghost" type="button">Clear</button>
+            </div>
+          </article>
+
+          <article class="glass panel modality-card">
+            <div class="card-head">
+              <div>
+                <div class="module-badge">MRI</div>
+                <h3>MRI Image Input</h3>
+                <p class="muted">Upload an image or use a simulated MRI sample.</p>
+              </div>
+            </div>
+            <label class="file-drop" for="mri-file">
+              <input id="mri-file" type="file" accept="image/*" />
+              <span class="file-drop-title">Upload MRI image</span>
+              <span class="file-drop-sub">PNG, JPG, JPEG</span>
+            </label>
+            <div id="mri-preview" class="preview-box muted">No MRI input selected.</div>
+            <div id="mri-meta" class="note-card" hidden></div>
+            <div class="button-row modality-actions">
+              <button id="mri-random" class="btn glass" type="button">Random Example</button>
+              <button id="mri-clear" class="btn ghost" type="button">Clear</button>
+            </div>
+          </article>
+
+          <article class="glass panel modality-card">
+            <div class="card-head">
+              <div>
+                <div class="module-badge">Speech</div>
+                <h3>Speech Input</h3>
+                <p class="muted">Upload audio or use a simulated speech sample.</p>
+              </div>
+            </div>
+            <label class="file-drop" for="speech-file">
+              <input id="speech-file" type="file" accept="audio/*" />
+              <span class="file-drop-title">Upload speech audio</span>
+              <span class="file-drop-sub">WAV, MP3, M4A, OGG</span>
+            </label>
+            <div class="audio-wrap">
+              <audio id="speech-player" controls hidden></audio>
+              <div id="speech-preview" class="preview-box muted">No speech input selected.</div>
+            </div>
+            <div id="speech-meta" class="note-card" hidden></div>
+            <div class="button-row modality-actions">
+              <button id="speech-random" class="btn glass" type="button">Random Example</button>
+              <button id="speech-clear" class="btn ghost" type="button">Clear</button>
+            </div>
+          </article>
+
+          <article class="glass panel modality-card">
+            <div class="card-head">
+              <div>
+                <div class="module-badge">Face</div>
+                <h3>Face Image Input</h3>
+                <p class="muted">Upload a face image or use a simulated visual sample.</p>
+              </div>
+            </div>
+            <label class="file-drop" for="face-file">
+              <input id="face-file" type="file" accept="image/*" />
+              <span class="file-drop-title">Upload face image</span>
+              <span class="file-drop-sub">PNG, JPG, JPEG</span>
+            </label>
+            <div id="face-preview" class="preview-box muted">No face input selected.</div>
+            <div id="face-meta" class="note-card" hidden></div>
+            <div class="button-row modality-actions">
+              <button id="face-random" class="btn glass" type="button">Random Example</button>
+              <button id="face-webcam" class="btn glass" type="button">Use Webcam</button>
+              <button id="face-clear" class="btn ghost" type="button">Clear</button>
+            </div>
+            <div id="webcam-container" class="preview-box" style="display:none; flex-direction:column; gap:10px;">
+              <video id="webcam-video" style="width:100%; border-radius:12px;" autoplay playsinline></video>
+              <canvas id="webcam-canvas" style="display:none;"></canvas>
+              <button id="face-capture" class="btn primary small" type="button">Capture Snap</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="glass combined-bar">
+          <div>
+            <strong>Fused Prediction</strong>
+            <p class="muted">Any subset of modalities can be used. Empty modalities are ignored.</p>
+          </div>
+          <div class="button-row">
+            <button id="clear-all" class="btn ghost" type="button">Clear All</button>
+            <button id="predict-all" class="btn primary" type="button">Fused Prediction</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="results" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Results</h2>
+            <p>Combined output from whichever modalities are currently available.</p>
+          </div>
+        </div>
+
+        <div class="results-grid">
+          <article class="glass panel result-panel">
+            <div class="result-hero">
+              <div id="emotion-badge" class="emotion-badge">--</div>
+              <div>
+                <div id="emotion-label" class="result-title">Awaiting prediction</div>
+                <div id="emotion-summary" class="muted">
+                  Fill at least one modality and run the combined prediction.
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric-card">
+                <span class="metric-label">Confidence</span>
+                <strong id="confidence-value">0%</strong>
+                <div class="mini-bar"><span id="confidence-bar"></span></div>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Valence</span>
+                <strong id="valence-value">0.00</strong>
+                <div class="mini-bar"><span id="valence-bar"></span></div>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Arousal</span>
+                <strong id="arousal-value">0.00</strong>
+                <div class="mini-bar"><span id="arousal-bar"></span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="glass panel">
+            <div class="section-header compact">
+              <div>
+                <h3>Modality Contribution</h3>
+                <p>Each active modality contributes one local estimate to the final result.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modality</th>
+                    <th>State</th>
+                    <th>Confidence</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="contribution-body">
+                  <tr>
+                    <td colspan="4" class="muted center-cell">No modalities processed yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="logic" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Working Logic</h2>
+            <p>Short simulation notes for how this combined page works.</p>
+          </div>
+        </div>
+        <div class="logic-grid">
+          <article class="glass panel logic-card">
+            <h3>Optional Modality Fusion</h3>
+            <p>
+              Each modality is processed independently. If a modality is empty, it is skipped.
+              The final prediction is computed from the average of all active modalities.
+            </p>
+          </article>
+          <article class="glass panel logic-card">
+            <h3>Typed and Uploaded Inputs</h3>
+            <p>
+              EEG and MEG use structured numeric features. MRI and face use uploaded images.
+              Speech uses uploaded audio. Each also supports a random example path for quick testing.
+            </p>
+          </article>
+          <article class="glass panel logic-card">
+            <h3>Single Predict Button</h3>
+            <p>
+              The combined predict button gathers all currently available inputs, computes per-modality
+              valence/arousal estimates, and returns one final emotional state.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="theory" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Theory</h2>
+            <p>Everything you need to understand the science behind each modality and the ML pipeline.</p>
+          </div>
+        </div>
+
+        <!-- Tab buttons -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
+          <button class="btn glass theory-tab-btn active" data-tab="overview" type="button">Overview</button>
+          <button class="btn ghost theory-tab-btn" data-tab="eeg" type="button">EEG</button>
+          <button class="btn ghost theory-tab-btn" data-tab="meg" type="button">MEG</button>
+          <button class="btn ghost theory-tab-btn" data-tab="mri" type="button">MRI</button>
+          <button class="btn ghost theory-tab-btn" data-tab="speech" type="button">Speech</button>
+          <button class="btn ghost theory-tab-btn" data-tab="face" type="button">Face</button>
+          <button class="btn ghost theory-tab-btn" data-tab="fusion" type="button">Fusion</button>
+          <button class="btn ghost theory-tab-btn" data-tab="ml" type="button">ML Models</button>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="theory-tab-content active" id="theory-tab-overview">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>What is Emotion Recognition?</h3>
+              <p>Emotion recognition is the automatic detection of a person's emotional state using biological and behavioural signals. Machines today are emotionally blind — a hospital monitor tracks pulse but cannot detect fear. NeuroSense closes this gap by reading five independent signals simultaneously.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Why Multimodal?</h3>
+              <p>Every single signal has a blind spot. EEG fails from motion artefacts. Face recognition fails when expressions are suppressed. Speech fails when someone is silent. These failures are independent — combining five signals means their weaknesses cancel out. If each modality has 25% error rate, all five agreeing wrongly is just 0.1%.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Valence-Arousal Model</h3>
+              <p>All emotions sit on a 2D graph. Valence is the positive-negative axis — happiness is high valence, sadness is low. Arousal is the energy axis — anger is high arousal, calm is low. Your system maps this to three classes: POSITIVE (high valence), NEGATIVE (low valence), NEUTRAL (middle).</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>The Four Quadrants</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+                <div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:12px;font-size:13px;"><strong style="color:#dc2626;">HIGH AROUSAL / LOW VALENCE</strong><br>Angry · Afraid · Stressed</div>
+                <div style="background:rgba(34,197,94,0.12);border-radius:10px;padding:12px;font-size:13px;"><strong style="color:#16a34a;">HIGH AROUSAL / HIGH VALENCE</strong><br>Excited · Happy · Elated</div>
+                <div style="background:rgba(245,158,11,0.12);border-radius:10px;padding:12px;font-size:13px;"><strong style="color:#b45309;">LOW AROUSAL / LOW VALENCE</strong><br>Sad · Depressed · Bored</div>
+                <div style="background:rgba(76,201,240,0.12);border-radius:10px;padding:12px;font-size:13px;"><strong style="color:#0891b2;">LOW AROUSAL / HIGH VALENCE</strong><br>Calm · Relaxed · Content</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EEG -->
+        <div class="theory-tab-content" id="theory-tab-eeg" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>What is EEG?</h3>
+              <p>Electroencephalography places 32 metal electrodes on the scalp to detect tiny electrical pulses from groups of neurons firing together. EEG cannot be faked — brain activity is involuntary. Dataset: DEAP — 32 subjects, 8,064 samples, 32 channels. Model: SVM RBF. Accuracy: 78%.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Five Frequency Bands</h3>
+              <ul style="list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px;font-size:14px;">
+                <li style="padding:8px 12px;background:rgba(127,123,255,0.08);border-radius:8px;"><strong>Delta (0.5–4 Hz)</strong> — Deep sleep, severe distress</li>
+                <li style="padding:8px 12px;background:rgba(127,123,255,0.08);border-radius:8px;"><strong>Theta (4–8 Hz)</strong> — Sadness, memory, depression</li>
+                <li style="padding:8px 12px;background:rgba(127,123,255,0.15);border-radius:8px;border:1px solid rgba(127,123,255,0.4);"><strong>Alpha (8–13 Hz)</strong> — KEY emotion marker — valence asymmetry</li>
+                <li style="padding:8px 12px;background:rgba(127,123,255,0.08);border-radius:8px;"><strong>Beta (13–30 Hz)</strong> — Anxiety, stress, active thinking</li>
+                <li style="padding:8px 12px;background:rgba(127,123,255,0.08);border-radius:8px;"><strong>Gamma (30+ Hz)</strong> — Emotional intensity and salience</li>
+              </ul>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Alpha Asymmetry — The Key Marker</h3>
+              <p>Less left frontal alpha = more left brain activity = POSITIVE emotion. More left frontal alpha = less activity = NEGATIVE emotion. This left-right difference cannot be voluntarily suppressed — making it the single most reliable non-invasive emotion marker in neuroscience.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>EEG Pipeline</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
+                <span style="padding:5px 10px;background:rgba(127,123,255,0.15);border-radius:8px;">DEAP CSV</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(127,123,255,0.15);border-radius:8px;">StandardScaler</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(127,123,255,0.15);border-radius:8px;">SVM RBF</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">3 Classes</span>
+              </div>
+              <p style="margin-top:12px;font-size:13px;color:var(--muted);">Input: 32 numeric features. Output: POSITIVE / NEGATIVE / NEUTRAL with confidence score.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEG -->
+        <div class="theory-tab-content" id="theory-tab-meg" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>What is MEG?</h3>
+              <p>Magnetoencephalography measures magnetic fields generated by neural currents. Unlike EEG, magnetic fields are not distorted by the skull — giving MEG 10x better spatial resolution. It can pinpoint activity in the amygdala, hippocampus, and insula individually. Real MEG scanners cost ₹2 crore and require shielded rooms.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>MEG vs EEG</h3>
+              <p><strong>MEG:</strong> Better spatial resolution, unaffected by skull, captures tangential neural currents.<br><br><strong>EEG:</strong> Cheaper, portable, more widespread in research, captures both radial and tangential currents.<br><br>Both measure neural electrical activity from outside the skull. MEG is more precise; EEG is more accessible.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Why Synthetic Data?</h3>
+              <p>No college lab has a real MEG scanner. Synthetic MEG data is generated following the DECAF dataset feature schema — 50 frequency band power features per sample with class-distinctive statistical profiles. This is the standard academic approach for BTech projects. Viva answer: "MEG data was synthetically generated following the DECAF dataset schema as real MEG acquisition requires specialist hardware unavailable in our lab."</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>MEG Pipeline</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
+                <span style="padding:5px 10px;background:rgba(76,201,240,0.15);border-radius:8px;">Synthetic CSV</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(76,201,240,0.15);border-radius:8px;">StandardScaler</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(76,201,240,0.15);border-radius:8px;">SVM RBF</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">3 Classes</span>
+              </div>
+              <p style="margin-top:12px;font-size:13px;color:var(--muted);">Input: 50 numeric features (meg_f0 to meg_f49). Output: POSITIVE / NEGATIVE / NEUTRAL.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MRI -->
+        <div class="theory-tab-content" id="theory-tab-mri" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>What is MRI?</h3>
+              <p>Magnetic Resonance Imaging uses magnetic fields to image soft tissue without radiation. It aligns hydrogen atoms in the brain, disrupts them with radio pulses, and measures the energy released as they realign. Different tissues release energy at different rates — tumour tissue appears differently from healthy brain tissue.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Four Tumor Classes</h3>
+              <ul style="list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px;font-size:14px;">
+                <li style="padding:8px 12px;background:rgba(239,68,68,0.1);border-radius:8px;"><strong>Glioma</strong> — Malignant, originates in glial cells, irregular boundaries</li>
+                <li style="padding:8px 12px;background:rgba(245,158,11,0.1);border-radius:8px;"><strong>Meningioma</strong> — Usually benign, grows on brain surface</li>
+                <li style="padding:8px 12px;background:rgba(127,123,255,0.1);border-radius:8px;"><strong>Pituitary</strong> — Hormonal, always at base of brain in midline</li>
+                <li style="padding:8px 12px;background:rgba(34,197,94,0.1);border-radius:8px;"><strong>No Tumor</strong> — Healthy symmetric brain scan</li>
+              </ul>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Why PCA for MRI?</h3>
+              <p>A 64×64 image has 4,096 features — too many for SVM. PCA finds the 150 directions of maximum variance, capturing 95% of information in 3.7% of dimensions. Training becomes 27x faster. The 150 components represent the most diagnostically important pixel patterns — where glioma scans differ most from healthy scans.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>MRI Pipeline</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Upload Image</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Grayscale 64×64</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Flatten 4096</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Scaler + PCA 150</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">SVM → 4 Classes</span>
+              </div>
+              <p style="margin-top:12px;font-size:13px;color:var(--muted);">Dataset: Kaggle Brain Tumor MRI — 7,023 images. Accuracy: 96%.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SPEECH -->
+        <div class="theory-tab-content" id="theory-tab-speech" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>How Voice Carries Emotion</h3>
+              <p>Angry speech is fast, loud, and high-pitched. Sad speech is slow, quiet, and monotone. These differences are captured by 162 acoustic features extracted by librosa. Speech is the most naturally available modality — people speak all day in ways that EEG monitoring cannot replicate.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>162 Features Breakdown</h3>
+              <div style="margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid rgba(148,163,184,0.2);">
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span style="color:var(--muted);">MFCC means + stds (40+40)</span><strong>80</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span style="color:var(--muted);">Chroma means + stds (12+12)</span><strong>24</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span style="color:var(--muted);">Mel means + stds first 10 (20+10)</span><strong>30</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span style="color:var(--muted);">Spectral contrast</span><strong>7</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span style="color:var(--muted);">Tonnetz</span><strong>6</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span style="color:var(--muted);">ZCR + RMS + Rolloff</span><strong>3</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span style="color:var(--muted);">Zero padding</span><strong>12</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;background:rgba(127,123,255,0.12);font-weight:700;"><span>TOTAL</span><span>162</span></div>
+              </div>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>TESS Dataset — 7 Emotion Classes</h3>
+              <p>Toronto Emotional Speech Set. Two speakers — OAF (Older Adult Female) and YAF (Young Adult Female). 200 target words each in 7 emotions. ~2,800 labelled .wav files.</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+                <span style="padding:4px 10px;background:rgba(239,68,68,0.12);border-radius:999px;font-size:12px;font-weight:600;">angry</span>
+                <span style="padding:4px 10px;background:rgba(127,123,255,0.12);border-radius:999px;font-size:12px;font-weight:600;">disgust</span>
+                <span style="padding:4px 10px;background:rgba(245,158,11,0.12);border-radius:999px;font-size:12px;font-weight:600;">fear</span>
+                <span style="padding:4px 10px;background:rgba(34,197,94,0.12);border-radius:999px;font-size:12px;font-weight:600;">happy</span>
+                <span style="padding:4px 10px;background:rgba(148,163,184,0.15);border-radius:999px;font-size:12px;font-weight:600;">neutral</span>
+                <span style="padding:4px 10px;background:rgba(76,201,240,0.12);border-radius:999px;font-size:12px;font-weight:600;">ps</span>
+                <span style="padding:4px 10px;background:rgba(99,153,34,0.12);border-radius:999px;font-size:12px;font-weight:600;">sad</span>
+              </div>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Speech Pipeline</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
+                <span style="padding:5px 10px;background:rgba(245,158,11,0.15);border-radius:8px;">.wav File</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(245,158,11,0.15);border-radius:8px;">librosa 162 features</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(245,158,11,0.15);border-radius:8px;">StandardScaler</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(245,158,11,0.15);border-radius:8px;">SVM RBF</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">7 Classes</span>
+              </div>
+              <p style="margin-top:12px;font-size:13px;color:var(--muted);">sr=22050, duration=4.0s. Accuracy: 86%.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FACE -->
+        <div class="theory-tab-content" id="theory-tab-face" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>Facial Expression Recognition</h3>
+              <p>The human face has 43 muscles. Paul Ekman established that 6 basic expressions — happiness, sadness, anger, fear, disgust, surprise — are universal across all cultures, suggesting a biological basis. Your model learns pixel-level patterns from FER2013: 35,887 labelled 48×48 greyscale face images. Accuracy: 91%.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Emotion Mapping</h3>
+              <div style="margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid rgba(148,163,184,0.2);">
+                <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span style="color:var(--muted);">happy + surprise</span><strong style="color:#16a34a;">POSITIVE</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span style="color:var(--muted);">angry + disgust + fear + sad</span><strong style="color:#dc2626;">NEGATIVE</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;"><span style="color:var(--muted);">neutral</span><strong style="color:#7f7bff;">NEUTRAL</strong></div>
+              </div>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Why PCA for Face?</h3>
+              <p>48×48 pixels = 2,304 values + 4 statistical features (mean, std, p25, p75) = 2,308 total features. Too many for SVM. PCA reduces to 100 components capturing 90%+ variance. This enables fast and accurate classification without overfitting to pixel noise.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Face Pipeline</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
+                <span style="padding:5px 10px;background:rgba(239,68,68,0.12);border-radius:8px;">Upload Image</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(239,68,68,0.12);border-radius:8px;">48×48 / 255</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(239,68,68,0.12);border-radius:8px;">2308 features</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(239,68,68,0.12);border-radius:8px;">Scaler + PCA 100</span>
+                <span style="color:var(--muted)">→</span>
+                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">3 Classes</span>
+              </div>
+              <p style="margin-top:12px;font-size:13px;color:var(--muted);">Dataset: FER2013 — 35,887 images. Accuracy: 91%.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUSION -->
+        <div class="theory-tab-content" id="theory-tab-fusion" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>What is Late Fusion?</h3>
+              <p>Each modality model predicts independently and outputs a probability vector. These vectors are stacked together and fed to a meta-classifier. Late fusion = combining at the output stage. This keeps each modality in its own world with its own appropriate preprocessing and model — only combining the final probabilities.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>How It Works — Step by Step</h3>
+              <div style="margin-top:10px;display:grid;gap:6px;font-size:13px;">
+                <div style="padding:8px 12px;background:rgba(127,123,255,0.08);border-radius:8px;">EEG model → [0.80, 0.12, 0.08]</div>
+                <div style="padding:8px 12px;background:rgba(76,201,240,0.08);border-radius:8px;">MEG model → [0.71, 0.15, 0.14]</div>
+                <div style="padding:8px 12px;background:rgba(245,158,11,0.08);border-radius:8px;">Speech model → [0.65, 0.25, 0.10]</div>
+                <div style="padding:8px 12px;background:rgba(239,68,68,0.08);border-radius:8px;">Face model → [0.70, 0.20, 0.10]</div>
+                <div style="padding:8px 12px;background:rgba(148,163,184,0.12);border-radius:8px;">Stack → 12-number vector</div>
+                <div style="padding:8px 12px;background:rgba(45,212,191,0.2);border-radius:8px;font-weight:700;">Logistic Regression → POSITIVE 89.7%</div>
+              </div>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Why Logistic Regression for Fusion?</h3>
+              <p>By the time data reaches fusion, it is already clean probability numbers from four trained models. The 12-number probability space already has a nearly linear decision boundary. Logistic Regression is fast, interpretable, and perfect here. A complex model would overfit on the limited fusion training data.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Why Fusion Wins</h3>
+              <p>If each modality has 25% error rate and errors are independent, all four agreeing wrongly = 0.25⁴ = 0.4%. Fusion accuracy is 6–11% higher than any single modality. EEG alone: 78%. Fusion: 89.7%. The improvement comes from modalities compensating for each other's weaknesses.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ML MODELS -->
+        <div class="theory-tab-content" id="theory-tab-ml" hidden>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+            <div class="glass panel logic-card">
+              <h3>SVM — Support Vector Machine</h3>
+              <p>Finds the hyperplane that separates emotion classes with the maximum possible margin. The RBF kernel maps data to higher dimensions where non-linear boundaries become linear. C=10 enforces strict boundary. probability=True enables Platt scaling to output confidence scores needed for fusion.</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+                <span style="padding:4px 10px;background:rgba(127,123,255,0.12);border-radius:8px;font-size:12px;">kernel='rbf'</span>
+                <span style="padding:4px 10px;background:rgba(127,123,255,0.12);border-radius:8px;font-size:12px;">C=10</span>
+                <span style="padding:4px 10px;background:rgba(127,123,255,0.12);border-radius:8px;font-size:12px;">gamma='scale'</span>
+                <span style="padding:4px 10px;background:rgba(127,123,255,0.12);border-radius:8px;font-size:12px;">probability=True</span>
+              </div>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>PCA — Principal Component Analysis</h3>
+              <p>Reduces many features to fewer dimensions while preserving maximum variance. For MRI: reduces 4,096 pixels → 150 components (captures 95% information). For Face: reduces 2,308 features → 100 components. PCA must be saved as .pkl and applied identically at inference — same transformation as training.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>StandardScaler</h3>
+              <p>Subtracts mean and divides by standard deviation for each feature. SVM is extremely sensitive to feature magnitude — without scaling, large-value features dominate small-value features. Must be fitted on training data only, then applied to both training and new inputs using the same learned statistics.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Training vs Inference</h3>
+              <p><strong>Training (notebooks):</strong> Run once on your laptop. Learns patterns from thousands of labelled examples. Saves result as .pkl files.<br><br><strong>Inference (backend):</strong> Every time a user predicts. Loads .pkl files. Applies what was already learned to one new sample. Model never retrains from user input.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>What is a .pkl File?</h3>
+              <p>A serialised Python object saved to disk by joblib.dump(). Contains every learned parameter of the trained model — support vectors, weights, decision boundary, scaler means and standard deviations, PCA components. joblib.load() reads it back identically. The backend loads all 19 .pkl files once at startup and reuses them for every prediction.</p>
+            </div>
+            <div class="glass panel logic-card">
+              <h3>Results Summary</h3>
+              <div style="margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid rgba(148,163,184,0.2);">
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span>EEG</span><strong>78.3%</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span>MEG</span><strong>74.8%</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span>MRI</span><strong>96.1%</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span>Speech</span><strong>86.4%</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span>Face</span><strong>91.2%</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;background:rgba(45,212,191,0.15);font-weight:700;"><span>Fusion</span><span style="color:#0f766e;">89.7%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
