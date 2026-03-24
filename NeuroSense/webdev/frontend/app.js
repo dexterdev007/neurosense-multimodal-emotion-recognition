@@ -573,19 +573,18 @@ function clearAll() {
   resetResult();
 }
 
-function collectNumericPayload(key) {
-  const refs = numericInputRefs[key];
-  const features = [];
-  let hasData = false;
-  refs.forEach(({ input }) => {
-    const raw = input.value.trim();
-    if (raw !== "") hasData = true;
-    features.push(Number(raw) || 0);
-  });
-  if (!hasData) return null;
-  if (key === "eeg") while (features.length < 32) features.push(0);
-  if (key === "meg") while (features.length < 50) features.push(0);
-  return { features };
+function buildSimulatedNumericResult(key) {
+  const scored = collectNumericModality(key);
+  if (!scored) return null;
+  return {
+    modality: NUMERIC_MODALITIES[key].label,
+    prediction: scored.label,
+    confidence: Number(scored.confidence.toFixed(4)),
+    probabilities: {
+      [scored.label]: Number(scored.confidence.toFixed(4)),
+    },
+    source: "simulated",
+  };
 }
 
 function collectFilePayload(key) {
@@ -631,17 +630,9 @@ async function predictCombined() {
   predictAllBtn.classList.add("loading");
 
   Object.keys(NUMERIC_MODALITIES).forEach((key) => {
-    const payload = collectNumericPayload(key);
-    if (payload) {
-      promises.push(
-        fetch(`/api/${key}/predict`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        })
-          .then((res) => parsePredictionResponse(res, key))
-          .then((data) => ({ modality: NUMERIC_MODALITIES[key].label, ...data }))
-      );
+    const simulated = buildSimulatedNumericResult(key);
+    if (simulated) {
+      promises.push(Promise.resolve(simulated));
     }
   });
 
