@@ -158,8 +158,7 @@ function initTheme() {
     setTheme(saved);
     return;
   }
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  setTheme(prefersDark ? "dark" : "light");
+  setTheme("light");
 }
 
 function clamp(value, min, max) {
