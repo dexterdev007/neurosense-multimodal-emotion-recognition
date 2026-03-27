@@ -12,6 +12,9 @@ from utils.model_loader import get
 
 router = APIRouter()
 
+CORE_FUSION_MODALITIES = ("eeg", "meg", "speech", "face")
+SUPPORTED_MODALITIES = CORE_FUSION_MODALITIES + ("mri",)
+
 
 class ModalityPayload(BaseModel):
     prediction: Optional[str] = None
@@ -38,11 +41,7 @@ def _prediction_fallback_vector(prediction: Optional[str], confidence: Optional[
     return vector
 
 
-def _vector_from_modalities(data: FusionInput, modality_name: str) -> np.ndarray:
-    payload = data.modalities.get(modality_name)
-    if payload is None:
-        raise HTTPException(status_code=400, detail=f"Missing modality '{modality_name}' in fusion request.")
-
+def _vector_from_payload(payload: ModalityPayload) -> np.ndarray:
     if payload.probabilities:
         return aggregate_probability_dict(payload.probabilities, order=SENTIMENT_ORDER)
 
@@ -65,41 +64,97 @@ def _vector_from_legacy_probs(values: Optional[List[float]], field_name: str) ->
     return vector
 
 
+def _available_modality_vectors(data: FusionInput) -> Dict[str, np.ndarray]:
+    if data.modalities:
+        vectors: Dict[str, np.ndarray] = {}
+        for modality_name, payload in data.modalities.items():
+            normalized_name = modality_name.strip().lower()
+            if normalized_name not in SUPPORTED_MODALITIES:
+                continue
+            vectors[normalized_name] = _vector_from_payload(payload)
+
+        if not vectors:
+            raise HTTPException(status_code=400, detail="Fusion request did not include any supported modalities.")
+        return vectors
+
+    legacy_vectors = {
+        "eeg": data.eeg_probs,
+        "meg": data.meg_probs,
+        "speech": data.speech_probs,
+        "face": data.face_probs,
+    }
+    vectors = {
+        modality_name: _vector_from_legacy_probs(values, f"{modality_name}_probs")
+        for modality_name, values in legacy_vectors.items()
+        if values is not None
+    }
+    if not vectors:
+        raise HTTPException(status_code=400, detail="Fusion request did not include any modality probabilities.")
+    return vectors
+
+
+def _average_vectors(vectors: Dict[str, np.ndarray]) -> np.ndarray:
+    stacked = np.vstack(list(vectors.values()))
+    averaged = stacked.mean(axis=0)
+    total = float(averaged.sum())
+    if total > 0:
+        averaged = averaged / total
+    return averaged
+
+
 @router.post("/predict")
 def predict_fusion(data: FusionInput):
     try:
-        if data.modalities:
-            eeg_vector = _vector_from_modalities(data, "eeg")
-            meg_vector = _vector_from_modalities(data, "meg")
-            speech_vector = _vector_from_modalities(data, "speech")
-            face_vector = _vector_from_modalities(data, "face")
-        else:
-            eeg_vector = _vector_from_legacy_probs(data.eeg_probs, "eeg_probs")
-            meg_vector = _vector_from_legacy_probs(data.meg_probs, "meg_probs")
-            speech_vector = _vector_from_legacy_probs(data.speech_probs, "speech_probs")
-            face_vector = _vector_from_legacy_probs(data.face_probs, "face_probs")
+        vectors = _available_modality_vectors(data)
+        active_modalities = tuple(vectors.keys())
 
-        X_meta = np.concatenate([eeg_vector, meg_vector, speech_vector, face_vector]).reshape(1, -1)
+        # Use the trained late-fusion meta-model only when the exact trained
+        # four-modality set is present. For partial subsets or MRI-inclusive
+        # requests, aggregate the available sentiment vectors directly.
+        if set(active_modalities) == set(CORE_FUSION_MODALITIES):
+            eeg_vector = vectors["eeg"]
+            meg_vector = vectors["meg"]
+            speech_vector = vectors["speech"]
+            face_vector = vectors["face"]
+            X_meta = np.concatenate([eeg_vector, meg_vector, speech_vector, face_vector]).reshape(1, -1)
 
-        model = get("fusion", "model")
-        encoder = get("fusion", "label_encoder")
+            model = get("fusion", "model")
+            encoder = get("fusion", "label_encoder")
 
-        pred_idx = model.predict(X_meta)[0]
-        label = encoder.inverse_transform([pred_idx])[0]
+            pred_idx = model.predict(X_meta)[0]
+            label = encoder.inverse_transform([pred_idx])[0]
 
-        probabilities = {}
-        if hasattr(model, "predict_proba"):
-            prob_arr = model.predict_proba(X_meta)[0]
-            classes = encoder.inverse_transform(range(len(prob_arr)))
-            probabilities = {cls: round(float(prob), 4) for cls, prob in zip(classes, prob_arr)}
+            probabilities = {}
+            if hasattr(model, "predict_proba"):
+                prob_arr = model.predict_proba(X_meta)[0]
+                classes = encoder.inverse_transform(range(len(prob_arr)))
+                probabilities = {cls: round(float(prob), 4) for cls, prob in zip(classes, prob_arr)}
+
+            return {
+                "modality": "Fusion (EEG + MEG + Speech + Face)",
+                "prediction": label,
+                "confidence": round(float(max(probabilities.values())), 4) if probabilities else None,
+                "probabilities": probabilities,
+                "model_used": "LogisticRegression (meta)",
+                "feature_count": int(X_meta.shape[1]),
+                "active_modalities": list(active_modalities),
+            }
+
+        averaged_vector = _average_vectors(vectors)
+        label = SENTIMENT_ORDER[int(np.argmax(averaged_vector))]
+        probabilities = {
+            sentiment: round(float(probability), 4)
+            for sentiment, probability in zip(SENTIMENT_ORDER, averaged_vector)
+        }
 
         return {
-            "modality": "Fusion (EEG + MEG + Speech + Face)",
+            "modality": f"Fusion ({' + '.join(modality.upper() for modality in active_modalities)})",
             "prediction": label,
-            "confidence": round(float(max(probabilities.values())), 4) if probabilities else None,
+            "confidence": round(float(max(probabilities.values())), 4),
             "probabilities": probabilities,
-            "model_used": "LogisticRegression (meta)",
-            "feature_count": int(X_meta.shape[1]),
+            "model_used": f"Average sentiment aggregation ({len(active_modalities)} modalities)",
+            "feature_count": int(len(active_modalities) * len(SENTIMENT_ORDER)),
+            "active_modalities": list(active_modalities),
         }
 
     except HTTPException:
