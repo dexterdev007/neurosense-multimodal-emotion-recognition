@@ -12,6 +12,75 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* Fusion diagnostics panel */
+      .fusion-meta-panel {
+        margin-top: 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(127, 123, 255, 0.22);
+        background: rgba(127, 123, 255, 0.06);
+        backdrop-filter: blur(8px);
+        padding: 14px 16px;
+        font-size: 13px;
+        display: grid;
+        gap: 6px;
+      }
+      .fusion-meta-header {
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--primary, #7f7bff);
+        margin-bottom: 2px;
+      }
+      .fusion-meta-row {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      .fusion-meta-key {
+        color: var(--muted, #94a3b8);
+        min-width: 120px;
+        flex-shrink: 0;
+      }
+      .fusion-meta-val {
+        font-weight: 600;
+      }
+      .fusion-meta-warn {
+        margin-top: 4px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.28);
+        color: #b45309;
+        font-size: 12px;
+      }
+      .fusion-meta-note {
+        margin-top: 4px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: rgba(76, 201, 240, 0.1);
+        border: 1px solid rgba(76, 201, 240, 0.24);
+        color: #0891b2;
+        font-size: 12px;
+      }
+      .fusion-meta-diff {
+        margin-top: 2px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: rgba(127, 123, 255, 0.1);
+        font-style: italic;
+        font-size: 12px;
+      }
+      /* Per-modality caveat icon in table */
+      .modality-caveat {
+        margin-left: 4px;
+        cursor: help;
+        font-size: 13px;
+        vertical-align: middle;
+      }
+    </style>
   </head>
   <body>
     <div class="ambient" aria-hidden="true"></div>

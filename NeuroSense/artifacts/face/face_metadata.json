@@ -1,0 +1,9 @@
+{
+  "data_source": "Public Faces (Kaggle)",
+  "data_source_note": "Grayscale face features with strong identity variation and a known train/test distribution gap.",
+  "evaluation_method": "Train/Validation model selection (PCA components + SVM C)",
+  "test_accuracy": 0.5347,
+  "validation_accuracy": 0.5633,
+  "pca_components": 200,
+  "svm_c": 5.0
+}

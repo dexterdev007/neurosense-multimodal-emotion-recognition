@@ -1,0 +1,6 @@
+{
+  "data_source": "Public Dataset (DEAP/Kaggle-derived EEG CSV)",
+  "data_source_note": "Tabular EEG features extracted from a fixed CSV. No subject-level identity split is available in this project pipeline.",
+  "evaluation_method": "80/20 Stratified Random Split",
+  "test_accuracy": 0.9766
+}

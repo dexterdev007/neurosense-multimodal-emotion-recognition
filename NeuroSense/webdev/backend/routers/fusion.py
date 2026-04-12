@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from utils.emotion_utils import SENTIMENT_ORDER, aggregate_probability_dict, map_emotion_to_sentiment
+from utils.metadata_loader import load_modality_metadata
 from utils.model_loader import get
 
 
@@ -102,16 +103,84 @@ def _average_vectors(vectors: Dict[str, np.ndarray]) -> np.ndarray:
     return averaged
 
 
+def _compute_average_baseline(vectors: Dict[str, np.ndarray]) -> dict:
+    """Compute what simple averaging would predict — for transparency."""
+    averaged = _average_vectors(vectors)
+    baseline_label = SENTIMENT_ORDER[int(np.argmax(averaged))]
+    baseline_probs = {
+        sentiment: round(float(prob), 4)
+        for sentiment, prob in zip(SENTIMENT_ORDER, averaged)
+    }
+    return {
+        "prediction": baseline_label,
+        "confidence": round(float(max(baseline_probs.values())), 4),
+        "probabilities": baseline_probs,
+    }
+
+
+def _fusion_runtime_policy() -> dict:
+    metadata = load_modality_metadata("fusion")
+    adds_value = metadata.get("meta_model_adds_value")
+    if adds_value is None:
+        adds_value = True
+
+    policy = {
+        "meta_model_adds_value": bool(adds_value),
+        "meta_model_disabled_reason": None,
+    }
+
+    if not policy["meta_model_adds_value"]:
+        policy["meta_model_disabled_reason"] = (
+            "The trained fusion meta-model did not outperform simple averaging on the saved validation metrics."
+        )
+
+    return policy
+
+
+def _average_response(
+    vectors: Dict[str, np.ndarray],
+    active_modalities: tuple[str, ...],
+    average_baseline: dict,
+    policy: dict | None = None,
+) -> dict:
+    averaged_vector = _average_vectors(vectors)
+    label = SENTIMENT_ORDER[int(np.argmax(averaged_vector))]
+    probabilities = {
+        sentiment: round(float(probability), 4)
+        for sentiment, probability in zip(SENTIMENT_ORDER, averaged_vector)
+    }
+
+    response = {
+        "modality": f"Fusion ({' + '.join(modality.upper() for modality in active_modalities)})",
+        "prediction": label,
+        "confidence": round(float(max(probabilities.values())), 4),
+        "probabilities": probabilities,
+        "model_used": f"Average sentiment aggregation ({len(active_modalities)} modalities)",
+        "fusion_method": "average_aggregation",
+        "feature_count": int(len(active_modalities) * len(SENTIMENT_ORDER)),
+        "active_modalities": list(active_modalities),
+        "baseline_average_prediction": average_baseline,
+        "meta_agrees_with_baseline": True,
+    }
+    if policy and policy.get("meta_model_disabled_reason"):
+        response["meta_model_disabled_reason"] = policy["meta_model_disabled_reason"]
+    return response
+
+
 @router.post("/predict")
 def predict_fusion(data: FusionInput):
     try:
         vectors = _available_modality_vectors(data)
         active_modalities = tuple(vectors.keys())
 
+        # Always compute the average baseline for comparison
+        average_baseline = _compute_average_baseline(vectors)
+        policy = _fusion_runtime_policy()
+
         # Use the trained late-fusion meta-model only when the exact trained
         # four-modality set is present. For partial subsets or MRI-inclusive
         # requests, aggregate the available sentiment vectors directly.
-        if set(active_modalities) == set(CORE_FUSION_MODALITIES):
+        if set(active_modalities) == set(CORE_FUSION_MODALITIES) and policy["meta_model_adds_value"]:
             eeg_vector = vectors["eeg"]
             meg_vector = vectors["meg"]
             speech_vector = vectors["speech"]
@@ -130,32 +199,22 @@ def predict_fusion(data: FusionInput):
                 classes = encoder.inverse_transform(range(len(prob_arr)))
                 probabilities = {cls: round(float(prob), 4) for cls, prob in zip(classes, prob_arr)}
 
+            meta_agrees_with_avg = (label == average_baseline["prediction"])
+
             return {
                 "modality": "Fusion (EEG + MEG + Speech + Face)",
                 "prediction": label,
                 "confidence": round(float(max(probabilities.values())), 4) if probabilities else None,
                 "probabilities": probabilities,
                 "model_used": "LogisticRegression (meta)",
+                "fusion_method": "trained_meta_model",
                 "feature_count": int(X_meta.shape[1]),
                 "active_modalities": list(active_modalities),
+                "baseline_average_prediction": average_baseline,
+                "meta_agrees_with_baseline": meta_agrees_with_avg,
             }
 
-        averaged_vector = _average_vectors(vectors)
-        label = SENTIMENT_ORDER[int(np.argmax(averaged_vector))]
-        probabilities = {
-            sentiment: round(float(probability), 4)
-            for sentiment, probability in zip(SENTIMENT_ORDER, averaged_vector)
-        }
-
-        return {
-            "modality": f"Fusion ({' + '.join(modality.upper() for modality in active_modalities)})",
-            "prediction": label,
-            "confidence": round(float(max(probabilities.values())), 4),
-            "probabilities": probabilities,
-            "model_used": f"Average sentiment aggregation ({len(active_modalities)} modalities)",
-            "feature_count": int(len(active_modalities) * len(SENTIMENT_ORDER)),
-            "active_modalities": list(active_modalities),
-        }
+        return _average_response(vectors, active_modalities, average_baseline, policy=policy)
 
     except HTTPException:
         raise

@@ -1,0 +1,10 @@
+{
+  "data_source": "Late-fusion probability pooling",
+  "data_source_note": "Simple average aggregation is used at runtime because the saved LogisticRegression meta-model did not outperform the average baseline.",
+  "evaluation_method": "StratifiedKFold (5-fold)",
+  "meta_model_accuracy": 0.9565,
+  "average_baseline_accuracy": 0.9565,
+  "majority_vote_accuracy": 0.8261,
+  "meta_model_adds_value": false,
+  "fallback_reason": "Meta-model did not outperform simple averaging on the saved fusion validation metrics."
+}

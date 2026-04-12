@@ -534,7 +534,7 @@ function resetResult() {
   contributionBody.innerHTML = `<tr><td colspan="4" class="muted center-cell">No modalities processed yet.</td></tr>`;
 }
 
-function renderResult(combined, contributions) {
+function renderResult(combined, contributions, fusionMeta) {
   const meta = EMOTION_META[combined.label] || EMOTION_META.Neutral;
   emotionBadge.textContent = meta.emoji;
   emotionBadge.style.background = `linear-gradient(135deg, ${meta.color}, rgba(255,255,255,0.35))`;
@@ -548,17 +548,65 @@ function renderResult(combined, contributions) {
   arousalBar.style.width = `${Math.round(combined.arousal * 100)}%`;
 
   contributionBody.innerHTML = contributions
-    .map(
-      (item) => `
+    .map((item) => {
+      const caveat = item._caveat ? `<span class="modality-caveat" title="${item._caveat}">⚠️</span>` : "";
+      return `
         <tr>
-          <td>${item.modality}</td>
+          <td>${item.modality}${caveat}</td>
           <td>${item.label}</td>
           <td>${Math.round(item.confidence * 100)}%</td>
-          <td>Used</td>
+          <td>${item._note || "Used"}</td>
         </tr>
-      `,
-    )
+      `;
+    })
     .join("");
+
+  // Fusion method diagnostic panel
+  const existingMeta = document.getElementById("fusion-meta-panel");
+  if (existingMeta) existingMeta.remove();
+
+  if (fusionMeta) {
+    const panel = document.createElement("div");
+    panel.id = "fusion-meta-panel";
+    panel.className = "fusion-meta-panel";
+
+    const methodLabel = fusionMeta.fusion_method === "trained_meta_model"
+      ? "Trained Meta-Model (LogisticRegression)"
+      : "Simple Average Aggregation";
+
+    let baselineHtml = "";
+    if (fusionMeta.baseline_average_prediction) {
+      const bp = fusionMeta.baseline_average_prediction;
+      const agrees = fusionMeta.meta_agrees_with_baseline;
+      const agreeIcon = agrees ? "✅" : "⚡";
+      baselineHtml = `
+        <div class="fusion-meta-row">
+          <span class="fusion-meta-key">Average baseline:</span>
+          <span class="fusion-meta-val">${bp.prediction} (${Math.round(bp.confidence * 100)}%) ${agreeIcon}</span>
+        </div>
+        ${agrees ? "" : `<div class='fusion-meta-row fusion-meta-diff'>Meta-model differs from average baseline</div>`}
+      `;
+    }
+
+    panel.innerHTML = `
+      <div class="fusion-meta-header">Fusion Diagnostics</div>
+      <div class="fusion-meta-row">
+        <span class="fusion-meta-key">Method:</span>
+        <span class="fusion-meta-val">${methodLabel}</span>
+      </div>
+      ${baselineHtml}
+      ${fusionMeta.meta_model_disabled_reason ? `<div class="fusion-meta-row fusion-meta-note">ℹ️ Fusion: ${fusionMeta.meta_model_disabled_reason}</div>` : ""}
+      ${(fusionMeta._warnings || []).map(w => `<div class="fusion-meta-row fusion-meta-warn">⚠️ ${w}</div>`).join("")}
+      ${(fusionMeta._notes || []).map(n => `<div class="fusion-meta-row fusion-meta-note">ℹ️ ${n}</div>`).join("")}
+    `;
+
+    const contributionSection = contributionBody.closest(".contribution-table, table")?.parentElement;
+    if (contributionSection) {
+      contributionSection.after(panel);
+    } else {
+      document.querySelector(".result-panel, .results-area, #result-section")?.appendChild(panel);
+    }
+  }
 }
 
 function clearNumeric(key) {
@@ -700,13 +748,52 @@ async function predictCombined() {
       confidence: fusionData.confidence || 0.5,
     };
 
-    const contribs = results.map((r) => ({
-      modality: r.modality,
-      label: r.prediction,
-      confidence: r.confidence || 0.5,
-    }));
+    // Build enriched contributions with per-modality caveats
+    const contribs = results.map((r) => {
+      const entry = {
+        modality:   r.modality,
+        label:      r.prediction,
+        confidence: r.confidence || 0.5,
+        _note:      r.source === "simulated" ? "Simulated" : "API",
+      };
 
-    renderResult(combined, contribs);
+      // Universal honest metadata surfacing
+      if (r.data_source_note) {
+        entry._caveat = r.data_source_note;
+        if (r.data_source?.toLowerCase().includes("synthetic")) {
+          entry._note = "Synthetic";
+        }
+      }
+
+      if (r.evaluation_method) {
+         // Display evaluation method shorthand in the note column
+         const method = r.evaluation_method.toLowerCase();
+         if (method.includes("holdout")) entry._note = "Holdout";
+         else if (method.includes("fold")) entry._note = "CV-Trained";
+         else if (method.includes("split")) entry._note = "Split";
+      }
+
+      return entry;
+    });
+
+    // Fusion meta for diagnostics panel
+    const fusionMeta = {
+      fusion_method: fusionData.fusion_method,
+      baseline_average_prediction: fusionData.baseline_average_prediction,
+      meta_agrees_with_baseline: fusionData.meta_agrees_with_baseline,
+      meta_model_disabled_reason: fusionData.meta_model_disabled_reason,
+      
+      // Collect warnings/notes from ALL modalities
+      _warnings: results
+        .filter(r => r.data_source_note && r.data_source?.toLowerCase().includes("synthetic"))
+        .map(r => `${r.modality}: ${r.data_source_note}`),
+      
+      _notes: results
+        .filter(r => r.evaluation_note || (r.evaluation_method && r.modality?.toLowerCase() === "speech"))
+        .map(r => `${r.modality}: ${r.evaluation_note || r.evaluation_method}`),
+    };
+
+    renderResult(combined, contribs, fusionMeta);
   } catch (err) {
     window.alert(`Prediction failed: ${err.message}`);
   } finally {

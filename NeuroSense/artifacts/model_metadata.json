@@ -1,0 +1,92 @@
+{
+  "project": "NeuroSense",
+  "description": "Machine-readable metadata for all modality models",
+  "modalities": {
+    "eeg": {
+      "dataset_type": "real",
+      "data_source": "Public Dataset (DEAP/Kaggle-derived EEG CSV)",
+      "data_source_note": "Tabular EEG features extracted from a fixed CSV. No subject-level identity split is available in this project pipeline.",
+      "evaluation_method": "80/20 Stratified Random Split",
+      "dataset_name": "DEAP-derived EEG CSV",
+      "model_type": "SVM (RBF, C=5.0)",
+      "output_classes": ["NEGATIVE", "NEUTRAL", "POSITIVE"],
+      "known_limitations": [],
+      "status": "clean"
+    },
+    "meg": {
+      "dataset_type": "synthetic",
+      "data_source": "Synthetic (Generated)",
+      "data_source_note": "MEG signals generated with Gaussian noise (0.3) and frequency-domain shifts (0.5). Used for developmental pipeline validation.",
+      "evaluation_method": "5-fold StratifiedKFold cross-validation",
+      "dataset_name": "Auto-generated MEG-like features",
+      "model_type": "SVM (RBF, C=5.0)",
+      "output_classes": ["NEGATIVE", "NEUTRAL", "POSITIVE"],
+      "known_limitations": [
+        "Dataset is synthetic — accuracy does not reflect real MEG classification",
+        "High accuracy is an artifact of controlled class separability in generated data"
+      ],
+      "status": "synthetic_caveat"
+    },
+    "mri": {
+      "dataset_type": "real",
+      "data_source": "Public Dataset (Kaggle/Brain-Tumor)",
+      "data_source_note": "Structural MRI scans evaluated with the dataset's fixed Training and Testing folders.",
+      "evaluation_method": "Fixed Train/Test Split (Folders)",
+      "dataset_name": "Brain Tumor MRI (Kaggle)",
+      "model_type": "SVM + PCA",
+      "output_classes": ["glioma", "meningioma", "no_tumor", "pituitary"],
+      "known_limitations": [
+        "Classifies brain tumors, not emotions directly",
+        "Mapped to sentiment via emotion_utils (tumor=NEGATIVE, no_tumor=NEUTRAL)"
+      ],
+      "status": "clean"
+    },
+    "speech": {
+      "dataset_type": "real",
+      "data_source": "Ryerson Audio-Visual Database of Emotional Speech and Song (RAVDESS)",
+      "data_source_note": "Audio-only speech clips from 24 actors. Labels are derived from the official RAVDESS emotion codes and mapped to sentiment classes for this project.",
+      "dataset_name": "RAVDESS Audio Speech Actors 01-24",
+      "model_type": "SVM (RBF, C=8.0, class_weight=balanced)",
+      "evaluation_method": "Actor Holdout + GroupKFold cross-validation (speaker-aware)",
+      "evaluation_note": "Model selection uses speaker-aware GroupKFold on train actors, then reports a final actor-holdout score on unseen actors.",
+      "output_classes": ["NEGATIVE", "NEUTRAL", "POSITIVE"],
+      "known_limitations": [
+        "Acted/studio-recorded dataset — generalization to real-world speech is limited",
+        "Only two statements — limited linguistic variety",
+        "Mapped to 3-class sentiment — loses fine-grained emotion labels",
+        "Random-split accuracy is often inflated by actor identity leakage; use actor-holdout instead"
+      ],
+      "status": "moderate"
+    },
+    "face": {
+      "dataset_type": "real",
+      "data_source": "Public Faces (Kaggle)",
+      "data_source_note": "Grayscale face features with strong identity variation and a known train/test distribution gap.",
+      "evaluation_method": "Train/Validation model selection (PCA components + SVM C)",
+      "dataset_name": "FER2013 Facial Expressions",
+      "model_type": "PCA + SVM (tuned C & components)",
+      "output_classes": ["NEGATIVE", "NEUTRAL", "POSITIVE"],
+      "known_limitations": [
+        "FER2013 has a known train-test distribution gap",
+        "PCA+SVM pipeline has moderate accuracy — CNN would generalize better",
+        "Horizontal flip augmentation applied to reduce overfitting"
+      ],
+      "status": "moderate"
+    },
+    "fusion": {
+      "dataset_type": "derived",
+      "data_source": "Late-fusion probability pooling",
+      "data_source_note": "Simple average aggregation is used at runtime because the saved LogisticRegression meta-model did not outperform the average baseline.",
+      "evaluation_method": "StratifiedKFold (5-fold)",
+      "dataset_name": "Pooled probability vectors from base models",
+      "model_type": "LogisticRegression (meta-classifier)",
+      "output_classes": ["NEGATIVE", "NEUTRAL", "POSITIVE"],
+      "known_limitations": [
+        "Late-fusion by probability pooling, not same-subject aligned multimodal fusion",
+        "Trained meta-model does not outperform simple averaging on current dataset",
+        "MRI is not part of the trained fusion model (used as average-fallback only)"
+      ],
+      "status": "methodologically_limited"
+    }
+  }
+}

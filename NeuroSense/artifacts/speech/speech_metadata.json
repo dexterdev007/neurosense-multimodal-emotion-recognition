@@ -1,0 +1,68 @@
+{
+  "data_source": "Ryerson Audio-Visual Database of Emotional Speech and Song (RAVDESS)",
+  "data_source_note": "Audio-only speech clips from 24 actors. Labels are derived from the official RAVDESS emotion codes and mapped to sentiment classes for this project.",
+  "dataset_name": "RAVDESS Audio Speech Actors 01-24",
+  "evaluation_method": "Actor Holdout + GroupKFold cross-validation (speaker-aware)",
+  "evaluation_note": "Model selection uses speaker-aware GroupKFold on train actors, then reports a final actor-holdout score on unseen actors.",
+  "selected_model": "rbf_svm",
+  "label_mode": "sentiment",
+  "output_classes": [
+    "NEGATIVE",
+    "NEUTRAL",
+    "POSITIVE"
+  ],
+  "actor_holdout_accuracy": 0.6278,
+  "groupkfold_mean_accuracy": 0.6713,
+  "groupkfold_std": 0.0519,
+  "all_actor_groupkfold_mean_accuracy": 0.6715,
+  "all_actor_groupkfold_std": 0.0519,
+  "n_samples": 1440,
+  "n_train": 1080,
+  "n_test": 360,
+  "train_actors": [
+    "Actor_02",
+    "Actor_03",
+    "Actor_04",
+    "Actor_05",
+    "Actor_06",
+    "Actor_07",
+    "Actor_08",
+    "Actor_11",
+    "Actor_13",
+    "Actor_14",
+    "Actor_15",
+    "Actor_16",
+    "Actor_18",
+    "Actor_20",
+    "Actor_21",
+    "Actor_22",
+    "Actor_23",
+    "Actor_24"
+  ],
+  "test_actors": [
+    "Actor_01",
+    "Actor_09",
+    "Actor_10",
+    "Actor_12",
+    "Actor_17",
+    "Actor_19"
+  ],
+  "cache_file": "speech_ravdess_sentiment_features.npz",
+  "confusion_matrix": [
+    [
+      144,
+      27,
+      21
+    ],
+    [
+      30,
+      38,
+      4
+    ],
+    [
+      40,
+      12,
+      44
+    ]
+  ]
+}

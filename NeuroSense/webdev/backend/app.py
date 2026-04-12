@@ -37,12 +37,12 @@ def health():
 @app.get("/api/models/info")
 def models_info():
     return {
-        "eeg":    "SVM RBF — DEAP-derived EEG CSV",
-        "meg":    "SVM RBF — Synthetic MEG features",
-        "mri":    "SVM + PCA — Brain Tumor MRI (Kaggle)",
-        "speech": "SVM RBF — TESS Toronto Emotional Speech (REAL, 7 classes, 162 features)",
-        "face":   "SVM + PCA — FER2013 facial expressions",
-        "fusion": "Logistic Regression meta-classifier"
+        "eeg":    "SVM RBF — DEAP-derived EEG CSV (real dataset, cleanest module)",
+        "meg":    "SVM RBF — Synthetic MEG features (NOT real MEG data — pipeline demo only)",
+        "mri":    "SVM + PCA — Brain Tumor MRI, Kaggle (real dataset)",
+        "speech": "SVM RBF — RAVDESS speech (24 actors), actor-holdout + GroupKFold evaluation",
+        "face":   "SVM + PCA — FER2013 (known train-test gap, tuned C & PCA)",
+        "fusion": "Late-fusion probability pooling (defaults to simple average when the saved meta-model does not beat averaging)"
     }
 
 # Serve frontend as static files (so single Render URL works)

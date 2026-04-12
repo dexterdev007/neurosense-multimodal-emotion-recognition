@@ -1,0 +1,6 @@
+{
+  "data_source": "Public Dataset (Kaggle/Brain-Tumor)",
+  "data_source_note": "Structural MRI scans evaluated with the dataset's fixed Training and Testing folders.",
+  "evaluation_method": "Fixed Train/Test Split (Folders)",
+  "test_accuracy": 0.8662
+}

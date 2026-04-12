@@ -1,7 +1,9 @@
+import warnings
+from typing import List
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
-import numpy as np
+from utils.metadata_loader import load_modality_metadata
 from utils.model_loader import get
 from utils.preprocessors import preprocess_eeg
 
@@ -28,7 +30,9 @@ def predict_eeg(data: EEGInput):
                        f"Ensure your input has exactly {expected} EEG values."
             )
         
-        X_scaled = scaler.transform(X)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            X_scaled = scaler.transform(X)
         pred_idx = model.predict(X_scaled)[0]
         label    = encoder.inverse_transform([pred_idx])[0]
         
@@ -38,13 +42,18 @@ def predict_eeg(data: EEGInput):
             classes  = encoder.inverse_transform(range(len(prob_arr)))
             probs    = {c: round(float(p), 4) for c, p in zip(classes, prob_arr)}
         
+        metadata = load_modality_metadata("eeg")
+        
         return {
             "modality":      "EEG",
             "prediction":    label,
             "confidence":    round(float(max(probs.values())), 4) if probs else None,
             "probabilities": probs,
             "model_used":    type(model).__name__,
-            "feature_count": int(X.shape[1])
+            "feature_count": int(X.shape[1]),
+            "data_source":   metadata.get("data_source"),
+            "data_source_note": metadata.get("data_source_note"),
+            "evaluation_method": metadata.get("evaluation_method")
         }
     
     except HTTPException:
