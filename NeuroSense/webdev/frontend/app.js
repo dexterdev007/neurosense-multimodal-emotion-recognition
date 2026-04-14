@@ -16,49 +16,9 @@ const NUMERIC_MODALITIES = {
     valenceWeights: { fp1: 0.18, fp2: 0.2, alpha: 0.28, beta: -0.12, asymmetry: 0.22 },
     arousalWeights: { fp1: -0.08, fp2: -0.06, alpha: -0.14, beta: 0.42, asymmetry: 0.08 },
   },
-  meg: {
-    label: "MEG",
-    fields: [
-      { key: "frontalFlux", label: "Frontal Flux", min: -30, max: 30, step: 0.1 },
-      { key: "temporalSync", label: "Temporal Sync", min: 0, max: 1, step: 0.01 },
-      { key: "gammaBurst", label: "Gamma Burst", min: 0, max: 1, step: 0.01 },
-      { key: "coherence", label: "Coherence", min: 0, max: 1, step: 0.01 },
-      { key: "leftBias", label: "Left Bias", min: -1, max: 1, step: 0.01 },
-    ],
-    examples: [
-      { frontalFlux: 10.8, temporalSync: 0.74, gammaBurst: 0.61, coherence: 0.8, leftBias: 0.42 },
-      { frontalFlux: -11.6, temporalSync: 0.49, gammaBurst: 0.86, coherence: 0.57, leftBias: -0.38 },
-      { frontalFlux: 1.4, temporalSync: 0.42, gammaBurst: 0.3, coherence: 0.46, leftBias: 0.04 },
-    ],
-    valenceWeights: { frontalFlux: 0.24, temporalSync: 0.16, gammaBurst: -0.08, coherence: 0.18, leftBias: 0.24 },
-    arousalWeights: { frontalFlux: 0.08, temporalSync: 0.14, gammaBurst: 0.36, coherence: 0.18, leftBias: -0.06 },
-  },
 };
 
 const FILE_MODALITIES = {
-  mri: {
-    label: "MRI",
-    kind: "image",
-    previewId: "mri-preview",
-    metaId: "mri-meta",
-    inputId: "mri-file",
-    randomId: "mri-random",
-    clearId: "mri-clear",
-    examples: [
-      { note: "Balanced resting MRI descriptor", stats: { brightness: 120, contrast: 24, symmetry: 0.78, density: 0.32, variation: 0.28 } },
-      { note: "High-intensity stress-like MRI descriptor", stats: { brightness: 178, contrast: 58, symmetry: 0.36, density: 0.72, variation: 0.64 } },
-      { note: "Low-energy calm MRI descriptor", stats: { brightness: 108, contrast: 18, symmetry: 0.84, density: 0.26, variation: 0.22 } },
-    ],
-    fields: [
-      { key: "brightness", min: 0, max: 255 },
-      { key: "contrast", min: 0, max: 128 },
-      { key: "symmetry", min: 0, max: 1 },
-      { key: "density", min: 0, max: 1 },
-      { key: "variation", min: 0, max: 1 },
-    ],
-    valenceWeights: { brightness: -0.06, contrast: -0.14, symmetry: 0.32, density: -0.12, variation: -0.08 },
-    arousalWeights: { brightness: 0.08, contrast: 0.24, symmetry: -0.08, density: 0.24, variation: 0.2 },
-  },
   speech: {
     label: "Speech",
     kind: "audio",
@@ -119,7 +79,6 @@ const EMOTION_META = {
 
 const numericInputRefs = {};
 const fileState = {
-  mri: { file: null, sample: null, stats: null, previewUrl: null },
   speech: { file: null, sample: null, stats: null, previewUrl: null },
   face: { file: null, sample: null, stats: null, previewUrl: null },
 };
@@ -735,7 +694,7 @@ async function predictCombined() {
     let emotionLabel = (fusionData.prediction || fusionData.emotion || fusionData.predicted_emotion || fusionData.final_emotion || "NEUTRAL").toUpperCase();
     const emLower = emotionLabel.toLowerCase();
     if (emLower.includes("happy") || emLower.includes("pos")) emotionLabel = "Happy";
-    else if (emLower.includes("sad") || emLower.includes("neg") || emLower.includes("tumor") || emLower.includes("glioma")) emotionLabel = "Sad";
+    else if (emLower.includes("sad") || emLower.includes("neg")) emotionLabel = "Sad";
     else if (emLower.includes("ang")) emotionLabel = "Angry";
     else if (emLower.includes("surpris")) emotionLabel = "Surprised";
     else if (emLower.includes("calm")) emotionLabel = "Calm";

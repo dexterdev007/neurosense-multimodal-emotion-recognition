@@ -106,8 +106,8 @@
           <div class="eyebrow">Unified Multimodal Emotion Simulation</div>
           <h1>Predict Human Emotion</h1>
           <p class="hero-subtitle">
-            Enter any combination of EEG, MEG, MRI, speech, and face inputs. The
-            system can predict from one modality or combine all five in a single
+            Enter any combination of EEG, Speech, and Face inputs. The
+            system can predict from one modality or combine all three in a single
             output.
           </p>
         </div>
@@ -118,7 +118,7 @@
           <div>
             <h2>Input Workspace</h2>
             <p>
-              All five modalities are optional. Fill one, two, three, or all five,
+              All three modalities are optional. Fill one, two, or all three,
               then run a single combined prediction.
             </p>
           </div>
@@ -140,41 +140,7 @@
             </div>
           </article>
 
-          <article class="glass panel modality-card">
-            <div class="card-head">
-              <div>
-                <div class="module-badge">MEG</div>
-                <h3>MEG Inputs</h3>
-                <p class="muted">Magnetic field feature summaries.</p>
-              </div>
-            </div>
-            <div id="meg-fields" class="input-grid compact-grid"></div>
-            <div class="button-row modality-actions">
-              <button id="meg-random" class="btn glass" type="button">Random Example</button>
-              <button id="meg-clear" class="btn ghost" type="button">Clear</button>
-            </div>
-          </article>
 
-          <article class="glass panel modality-card">
-            <div class="card-head">
-              <div>
-                <div class="module-badge">MRI</div>
-                <h3>MRI Image Input</h3>
-                <p class="muted">Upload an image or use a simulated MRI sample.</p>
-              </div>
-            </div>
-            <label class="file-drop" for="mri-file">
-              <input id="mri-file" type="file" accept="image/*" />
-              <span class="file-drop-title">Upload MRI image</span>
-              <span class="file-drop-sub">PNG, JPG, JPEG</span>
-            </label>
-            <div id="mri-preview" class="preview-box muted">No MRI input selected.</div>
-            <div id="mri-meta" class="note-card" hidden></div>
-            <div class="button-row modality-actions">
-              <button id="mri-random" class="btn glass" type="button">Random Example</button>
-              <button id="mri-clear" class="btn ghost" type="button">Clear</button>
-            </div>
-          </article>
 
           <article class="glass panel modality-card">
             <div class="card-head">
@@ -325,8 +291,8 @@
           <article class="glass panel logic-card">
             <h3>Typed and Uploaded Inputs</h3>
             <p>
-              EEG and MEG use structured numeric features. MRI and face use uploaded images.
-              Speech uses uploaded audio. Each also supports a random example path for quick testing.
+              EEG uses structured numeric features. Speech uses uploaded audio and
+              Face uses uploaded images. Each also supports a random example path for quick testing.
             </p>
           </article>
           <article class="glass panel logic-card">
@@ -351,8 +317,7 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
           <button class="btn glass theory-tab-btn active" data-tab="overview" type="button">Overview</button>
           <button class="btn ghost theory-tab-btn" data-tab="eeg" type="button">EEG</button>
-          <button class="btn ghost theory-tab-btn" data-tab="meg" type="button">MEG</button>
-          <button class="btn ghost theory-tab-btn" data-tab="mri" type="button">MRI</button>
+
           <button class="btn ghost theory-tab-btn" data-tab="speech" type="button">Speech</button>
           <button class="btn ghost theory-tab-btn" data-tab="face" type="button">Face</button>
           <button class="btn ghost theory-tab-btn" data-tab="fusion" type="button">Fusion</button>
@@ -364,11 +329,11 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
             <div class="glass panel logic-card">
               <h3>What is Emotion Recognition?</h3>
-              <p>Emotion recognition is the automatic detection of a person's emotional state using biological and behavioural signals. Machines today are emotionally blind — a hospital monitor tracks pulse but cannot detect fear. NeuroSense closes this gap by reading five independent signals simultaneously.</p>
+              <p>Emotion recognition is the automatic detection of a person's emotional state using biological and behavioural signals. Machines today are emotionally blind — a hospital monitor tracks pulse but cannot detect fear. NeuroSense closes this gap by reading three independent signals simultaneously.</p>
             </div>
             <div class="glass panel logic-card">
               <h3>Why Multimodal?</h3>
-              <p>Every single signal has a blind spot. EEG fails from motion artefacts. Face recognition fails when expressions are suppressed. Speech fails when someone is silent. These failures are independent — combining five signals means their weaknesses cancel out. If each modality has 25% error rate, all five agreeing wrongly is just 0.1%.</p>
+              <p>Every single signal has a blind spot. EEG fails from motion artefacts. Face recognition fails when expressions are suppressed. Speech fails when someone is silent. These failures are independent — combining three signals means their weaknesses cancel out. If each modality has 25% error rate, all three agreeing wrongly is just 1.5%.</p>
             </div>
             <div class="glass panel logic-card">
               <h3>Valence-Arousal Model</h3>
@@ -423,74 +388,6 @@
           </div>
         </div>
 
-        <!-- MEG -->
-        <div class="theory-tab-content" id="theory-tab-meg" hidden>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
-            <div class="glass panel logic-card">
-              <h3>What is MEG?</h3>
-              <p>Magnetoencephalography measures magnetic fields generated by neural currents. Unlike EEG, magnetic fields are not distorted by the skull — giving MEG 10x better spatial resolution. It can pinpoint activity in the amygdala, hippocampus, and insula individually. Real MEG scanners cost ₹2 crore and require shielded rooms.</p>
-            </div>
-            <div class="glass panel logic-card">
-              <h3>MEG vs EEG</h3>
-              <p><strong>MEG:</strong> Better spatial resolution, unaffected by skull, captures tangential neural currents.<br><br><strong>EEG:</strong> Cheaper, portable, more widespread in research, captures both radial and tangential currents.<br><br>Both measure neural electrical activity from outside the skull. MEG is more precise; EEG is more accessible.</p>
-            </div>
-            <div class="glass panel logic-card">
-              <h3>Why Synthetic Data?</h3>
-              <p>No college lab has a real MEG scanner. Synthetic MEG data is generated following the DECAF dataset feature schema — 50 frequency band power features per sample with class-distinctive statistical profiles. This is the standard academic approach for BTech projects. Viva answer: "MEG data was synthetically generated following the DECAF dataset schema as real MEG acquisition requires specialist hardware unavailable in our lab."</p>
-            </div>
-            <div class="glass panel logic-card">
-              <h3>MEG Pipeline</h3>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
-                <span style="padding:5px 10px;background:rgba(76,201,240,0.15);border-radius:8px;">Synthetic CSV</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(76,201,240,0.15);border-radius:8px;">StandardScaler</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(76,201,240,0.15);border-radius:8px;">SVM RBF</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">3 Classes</span>
-              </div>
-              <p style="margin-top:12px;font-size:13px;color:var(--muted);">Input: 50 numeric features (meg_f0 to meg_f49). Output: POSITIVE / NEGATIVE / NEUTRAL.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- MRI -->
-        <div class="theory-tab-content" id="theory-tab-mri" hidden>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
-            <div class="glass panel logic-card">
-              <h3>What is MRI?</h3>
-              <p>Magnetic Resonance Imaging uses magnetic fields to image soft tissue without radiation. It aligns hydrogen atoms in the brain, disrupts them with radio pulses, and measures the energy released as they realign. Different tissues release energy at different rates — tumour tissue appears differently from healthy brain tissue.</p>
-            </div>
-            <div class="glass panel logic-card">
-              <h3>Four Tumor Classes</h3>
-              <ul style="list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px;font-size:14px;">
-                <li style="padding:8px 12px;background:rgba(239,68,68,0.1);border-radius:8px;"><strong>Glioma</strong> — Malignant, originates in glial cells, irregular boundaries</li>
-                <li style="padding:8px 12px;background:rgba(245,158,11,0.1);border-radius:8px;"><strong>Meningioma</strong> — Usually benign, grows on brain surface</li>
-                <li style="padding:8px 12px;background:rgba(127,123,255,0.1);border-radius:8px;"><strong>Pituitary</strong> — Hormonal, always at base of brain in midline</li>
-                <li style="padding:8px 12px;background:rgba(34,197,94,0.1);border-radius:8px;"><strong>No Tumor</strong> — Healthy symmetric brain scan</li>
-              </ul>
-            </div>
-            <div class="glass panel logic-card">
-              <h3>Why PCA for MRI?</h3>
-              <p>A 64×64 image has 4,096 features — too many for SVM. PCA finds the 150 directions of maximum variance, capturing 95% of information in 3.7% of dimensions. Training becomes 27x faster. The 150 components represent the most diagnostically important pixel patterns — where glioma scans differ most from healthy scans.</p>
-            </div>
-            <div class="glass panel logic-card">
-              <h3>MRI Pipeline</h3>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12px;">
-                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Upload Image</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Grayscale 64×64</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Flatten 4096</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(45,212,191,0.15);border-radius:8px;">Scaler + PCA 150</span>
-                <span style="color:var(--muted)">→</span>
-                <span style="padding:5px 10px;background:rgba(45,212,191,0.2);border-radius:8px;">SVM → 4 Classes</span>
-              </div>
-              <p style="margin-top:12px;font-size:13px;color:var(--muted);">Dataset: Kaggle Brain Tumor MRI — 7,023 images. Accuracy: 96%.</p>
-            </div>
-          </div>
-        </div>
 
         <!-- SPEECH -->
         <div class="theory-tab-content" id="theory-tab-speech" hidden>
@@ -591,20 +488,19 @@
               <h3>How It Works — Step by Step</h3>
               <div style="margin-top:10px;display:grid;gap:6px;font-size:13px;">
                 <div style="padding:8px 12px;background:rgba(127,123,255,0.08);border-radius:8px;">EEG model → [0.80, 0.12, 0.08]</div>
-                <div style="padding:8px 12px;background:rgba(76,201,240,0.08);border-radius:8px;">MEG model → [0.71, 0.15, 0.14]</div>
                 <div style="padding:8px 12px;background:rgba(245,158,11,0.08);border-radius:8px;">Speech model → [0.65, 0.25, 0.10]</div>
                 <div style="padding:8px 12px;background:rgba(239,68,68,0.08);border-radius:8px;">Face model → [0.70, 0.20, 0.10]</div>
-                <div style="padding:8px 12px;background:rgba(148,163,184,0.12);border-radius:8px;">Stack → 12-number vector</div>
+                <div style="padding:8px 12px;background:rgba(148,163,184,0.12);border-radius:8px;">Stack → 9-number vector</div>
                 <div style="padding:8px 12px;background:rgba(45,212,191,0.2);border-radius:8px;font-weight:700;">Logistic Regression → POSITIVE 89.7%</div>
               </div>
             </div>
             <div class="glass panel logic-card">
               <h3>Why Logistic Regression for Fusion?</h3>
-              <p>By the time data reaches fusion, it is already clean probability numbers from four trained models. The 12-number probability space already has a nearly linear decision boundary. Logistic Regression is fast, interpretable, and perfect here. A complex model would overfit on the limited fusion training data.</p>
+              <p>By the time data reaches fusion, it is already clean probability numbers from three trained models. The 9-number probability space already has a nearly linear decision boundary. Logistic Regression is fast, interpretable, and perfect here. A complex model would overfit on the limited fusion training data.</p>
             </div>
             <div class="glass panel logic-card">
               <h3>Why Fusion Wins</h3>
-              <p>If each modality has 25% error rate and errors are independent, all four agreeing wrongly = 0.25⁴ = 0.4%. Fusion accuracy is 6–11% higher than any single modality. EEG alone: 78%. Fusion: 89.7%. The improvement comes from modalities compensating for each other's weaknesses.</p>
+              <p>If each modality has 25% error rate and errors are independent, all three agreeing wrongly = 0.25³ = 1.5%. Fusion accuracy is 6–11% higher than any single modality. EEG alone: 78%. Fusion: 89.7%. The improvement comes from modalities compensating for each other's weaknesses.</p>
             </div>
           </div>
         </div>
@@ -624,7 +520,7 @@
             </div>
             <div class="glass panel logic-card">
               <h3>PCA — Principal Component Analysis</h3>
-              <p>Reduces many features to fewer dimensions while preserving maximum variance. For MRI: reduces 4,096 pixels → 150 components (captures 95% information). For Face: reduces 2,308 features → 100 components. PCA must be saved as .pkl and applied identically at inference — same transformation as training.</p>
+              <p>Reduces many features to fewer dimensions while preserving maximum variance. For Face: reduces 2,308 features to fewer principal components. PCA must be saved as .pkl and applied identically at inference, using the same transformation as training.</p>
             </div>
             <div class="glass panel logic-card">
               <h3>StandardScaler</h3>
@@ -642,8 +538,7 @@
               <h3>Results Summary</h3>
               <div style="margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid rgba(148,163,184,0.2);">
                 <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span>EEG</span><strong>78.3%</strong></div>
-                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span>MEG</span><strong>74.8%</strong></div>
-                <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span>MRI</span><strong>96.1%</strong></div>
+
                 <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);background:rgba(127,123,255,0.04);"><span>Speech</span><strong>86.4%</strong></div>
                 <div style="display:flex;justify-content:space-between;padding:7px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,0.1);"><span>Face</span><strong>91.2%</strong></div>
                 <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;background:rgba(45,212,191,0.15);font-weight:700;"><span>Fusion</span><span style="color:#0f766e;">89.7%</span></div>

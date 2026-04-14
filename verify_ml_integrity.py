@@ -14,7 +14,7 @@ from typing import Any
 
 
 ARTIFACTS_DIR = Path(__file__).parent / "NeuroSense" / "artifacts"
-MODALITIES = ["eeg", "meg", "mri", "speech", "face", "fusion"]
+MODALITIES = ["eeg", "speech", "face", "fusion"]
 INTEGRITY_MARKERS = ["data_source", "evaluation_method", "data_source_note"]
 
 

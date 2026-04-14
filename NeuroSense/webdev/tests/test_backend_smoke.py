@@ -17,7 +17,7 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from app import app  # noqa: E402
 from utils.metadata_loader import load_modality_metadata  # noqa: E402
-from utils.model_loader import get, load_all_models  # noqa: E402
+from utils.model_loader import load_all_models  # noqa: E402
 
 
 DATASETS_DIR = PROJECT_ROOT / "datasets"
@@ -45,9 +45,6 @@ class BackendSmokeTest(unittest.TestCase):
         eeg_df = pd.read_csv(DATASETS_DIR / "eeg" / "eeg" / "emotions.csv")
         cls.eeg_features = eeg_df.drop(columns=["label"]).iloc[0].astype(float).tolist()
 
-        cls.meg_features = [0.0] * int(get("meg", "scaler").n_features_in_)
-
-        cls.mri_path = next((DATASETS_DIR / "mri" / "mri" / "Training").rglob("*.jpg"))
         cls.face_path = next((DATASETS_DIR / "face" / "archive" / "test").rglob("*.jpg"))
         cls.speech_path = next((DATASETS_DIR / "speech").rglob("*.wav"))
 
@@ -73,24 +70,6 @@ class BackendSmokeTest(unittest.TestCase):
         self.assertEqual(payload["feature_count"], len(self.eeg_features))
         _assert_probability_map(self, payload)
 
-    def test_meg_predict(self) -> None:
-        response = self._request("POST", "/api/meg/predict", json={"features": self.meg_features})
-        self.assertEqual(response.status_code, 200, response.text)
-        payload = response.json()
-        self.assertEqual(payload["feature_count"], len(self.meg_features))
-        self.assertIn("data_source", payload)
-        self.assertIn("data_source_note", payload)
-        _assert_probability_map(self, payload)
-
-    def test_mri_predict(self) -> None:
-        response = self._request(
-            "POST",
-            "/api/mri/predict",
-            files={"file": (self.mri_path.name, _read_bytes(self.mri_path), "image/jpeg")},
-        )
-        self.assertEqual(response.status_code, 200, response.text)
-        _assert_probability_map(self, response.json())
-
     def test_face_predict(self) -> None:
         response = self._request(
             "POST",
@@ -112,6 +91,16 @@ class BackendSmokeTest(unittest.TestCase):
         self.assertTrue(payload.get("evaluation_note"))
         _assert_probability_map(self, payload)
 
+    def test_removed_meg_and_mri_routes(self) -> None:
+        response_meg = self._request("POST", "/api/meg/predict", json={"features": [0, 1, 2]})
+        response_mri = self._request(
+            "POST",
+            "/api/mri/predict",
+            files={"file": ("sample.jpg", b"not-an-image", "image/jpeg")},
+        )
+        self.assertIn(response_meg.status_code, {404, 405}, response_meg.text)
+        self.assertIn(response_mri.status_code, {404, 405}, response_mri.text)
+
     def test_fusion_accepts_single_face_modality(self) -> None:
         response = self._request(
             "POST",
@@ -132,7 +121,7 @@ class BackendSmokeTest(unittest.TestCase):
         self.assertIn("Average sentiment aggregation", payload["model_used"])
         _assert_probability_map(self, payload)
 
-    def test_fusion_accepts_partial_subset(self) -> None:
+    def test_fusion_ignores_unsupported_modalities(self) -> None:
         response = self._request(
             "POST",
             "/api/fusion/predict",
@@ -146,7 +135,7 @@ class BackendSmokeTest(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200, response.text)
         payload = response.json()
-        self.assertCountEqual(payload["active_modalities"], ["eeg", "mri", "face"])
+        self.assertCountEqual(payload["active_modalities"], ["eeg", "face"])
         self.assertIn("Average sentiment aggregation", payload["model_used"])
         _assert_probability_map(self, payload)
 
@@ -157,7 +146,6 @@ class BackendSmokeTest(unittest.TestCase):
             json={
                 "modalities": {
                     "eeg": {"prediction": "POSITIVE", "confidence": 0.7},
-                    "meg": {"prediction": "NEGATIVE", "confidence": 0.65},
                     "speech": {"prediction": "NEUTRAL", "confidence": 0.8},
                     "face": {"prediction": "POSITIVE", "confidence": 0.75},
                 }
@@ -165,7 +153,7 @@ class BackendSmokeTest(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200, response.text)
         payload = response.json()
-        self.assertCountEqual(payload["active_modalities"], ["eeg", "meg", "speech", "face"])
+        self.assertCountEqual(payload["active_modalities"], ["eeg", "speech", "face"])
         fusion_metadata = load_modality_metadata("fusion")
         if fusion_metadata.get("meta_model_adds_value", True):
             self.assertEqual(payload["model_used"], "LogisticRegression (meta)")

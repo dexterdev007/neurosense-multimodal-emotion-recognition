@@ -13,8 +13,8 @@ from utils.model_loader import get
 
 router = APIRouter()
 
-CORE_FUSION_MODALITIES = ("eeg", "meg", "speech", "face")
-SUPPORTED_MODALITIES = CORE_FUSION_MODALITIES + ("mri",)
+CORE_FUSION_MODALITIES = ("eeg", "speech", "face")
+SUPPORTED_MODALITIES = CORE_FUSION_MODALITIES
 
 
 class ModalityPayload(BaseModel):
@@ -25,7 +25,6 @@ class ModalityPayload(BaseModel):
 
 class FusionInput(BaseModel):
     eeg_probs: Optional[List[float]] = None
-    meg_probs: Optional[List[float]] = None
     speech_probs: Optional[List[float]] = None
     face_probs: Optional[List[float]] = None
     modalities: Dict[str, ModalityPayload] = Field(default_factory=dict)
@@ -80,7 +79,6 @@ def _available_modality_vectors(data: FusionInput) -> Dict[str, np.ndarray]:
 
     legacy_vectors = {
         "eeg": data.eeg_probs,
-        "meg": data.meg_probs,
         "speech": data.speech_probs,
         "face": data.face_probs,
     }
@@ -178,14 +176,13 @@ def predict_fusion(data: FusionInput):
         policy = _fusion_runtime_policy()
 
         # Use the trained late-fusion meta-model only when the exact trained
-        # four-modality set is present. For partial subsets or MRI-inclusive
-        # requests, aggregate the available sentiment vectors directly.
+        # three-modality set is present. For partial subsets, aggregate the
+        # available sentiment vectors directly.
         if set(active_modalities) == set(CORE_FUSION_MODALITIES) and policy["meta_model_adds_value"]:
             eeg_vector = vectors["eeg"]
-            meg_vector = vectors["meg"]
             speech_vector = vectors["speech"]
             face_vector = vectors["face"]
-            X_meta = np.concatenate([eeg_vector, meg_vector, speech_vector, face_vector]).reshape(1, -1)
+            X_meta = np.concatenate([eeg_vector, speech_vector, face_vector]).reshape(1, -1)
 
             model = get("fusion", "model")
             encoder = get("fusion", "label_encoder")
@@ -202,7 +199,7 @@ def predict_fusion(data: FusionInput):
             meta_agrees_with_avg = (label == average_baseline["prediction"])
 
             return {
-                "modality": "Fusion (EEG + MEG + Speech + Face)",
+                "modality": "Fusion (EEG + Speech + Face)",
                 "prediction": label,
                 "confidence": round(float(max(probabilities.values())), 4) if probabilities else None,
                 "probabilities": probabilities,

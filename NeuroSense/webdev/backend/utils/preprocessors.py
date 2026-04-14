@@ -15,7 +15,6 @@ import cv2
 import numpy as np
 
 
-MRI_IMAGE_SIZE = (64, 64)
 FACE_IMAGE_SIZE = (48, 48)
 SPEECH_FEATURE_COUNT = 162
 SPEECH_PADDING_LENGTH = 12
@@ -38,30 +37,6 @@ def _decode_grayscale_image(image_bytes: bytes, error_message: str) -> np.ndarra
 def preprocess_eeg(features_list: list[float]) -> np.ndarray:
     """Convert a raw EEG feature list into the row-vector shape expected by the scaler."""
     return _as_row_vector(features_list)
-
-
-def preprocess_meg(features_list: list[float]) -> np.ndarray:
-    """Convert a raw MEG feature list into the row-vector shape expected by the scaler."""
-    return _as_row_vector(features_list)
-
-
-def preprocess_mri_image(image_bytes: bytes) -> np.ndarray:
-    """
-    Convert an MRI image into the flat feature vector used during training.
-
-    Steps:
-    1. Decode the uploaded image.
-    2. Convert it to grayscale.
-    3. Resize it to 64 x 64.
-    4. Flatten all pixels into one long vector.
-    """
-    image = _decode_grayscale_image(
-        image_bytes,
-        "Could not decode image. Ensure it is a valid JPEG or PNG.",
-    )
-    resized_image = cv2.resize(image, MRI_IMAGE_SIZE)
-    flat_pixels = resized_image.flatten().astype(np.float64)
-    return _as_row_vector(flat_pixels)
 
 
 def preprocess_speech(audio_bytes: bytes) -> np.ndarray:

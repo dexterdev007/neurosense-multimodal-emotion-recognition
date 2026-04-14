@@ -10,8 +10,6 @@ ARTIFACTS: dict[str, dict[str, Any]] = {}
 
 ARTIFACT_MAP = {
     "eeg": ["model", "scaler", "label_encoder"],
-    "meg": ["model", "scaler", "label_encoder"],
-    "mri": ["model", "scaler", "pca", "label_encoder"],
     "speech": ["model", "scaler", "label_encoder"],
     "face": ["model", "scaler", "pca", "label_encoder"],
     "fusion": ["model", "label_encoder"],
